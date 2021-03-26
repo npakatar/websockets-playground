@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Events\ReportGenerated;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -25,7 +26,9 @@ class GenerateReport implements ShouldQueue
 
     public function handle()
     {
-        sleep(20);
+        sleep(rand(10, 30));
+
+        ReportGenerated::dispatch($this->batch());
 
         return;
     }

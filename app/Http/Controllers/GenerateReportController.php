@@ -6,14 +6,12 @@ use App\Events\BatchComplete;
 use App\Jobs\GenerateReport;
 use Illuminate\Bus\Batch;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Redirect;
 
 class GenerateReportController extends Controller
 {
-    public function __invoke(Request $request): RedirectResponse
+    public function __invoke(Request $request): JsonResponse
     {
 
         $jobs = [];
@@ -24,10 +22,12 @@ class GenerateReportController extends Controller
 
         $batch = Bus::batch($jobs)
             ->then(function (Batch $batch) {
-                event(new BatchComplete($batch));
+                BatchComplete::dispatch($batch);
             })
             ->dispatch();
 
-        return Redirect::back()->with('message', 'Jobs processing');
+        return response()->json([
+            'batchId' => $batch->id
+        ]);
     }
 }

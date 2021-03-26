@@ -31,11 +31,12 @@
                 </button>
             </div>
 
+            <div v-if="isProcessing">
+                <span>Progress: {{ progress }}% </span>
+            </div>
+
             <div class="mt-8 dark:bg-gray-800 flex justify-center overflow-hidden">
-                <Alert v-if="$page.props.flash.message" :message="$page.props.flash.message" />
-<!--                <div v-if="$page.props.flash.message" class="alert">-->
-<!--                    {{ $page.props.flash.message }}-->
-<!--                </div>-->
+                <Alert v-if="isProcessing" message="Jobs processing" />
             </div>
 
         </div>
@@ -50,6 +51,13 @@ export default {
         Alert,
     },
 
+    data() {
+        return {
+            isProcessing: false,
+            progress: 0
+        }
+    },
+
     props: {
         canLogin: Boolean,
         canRegister: Boolean,
@@ -58,10 +66,27 @@ export default {
     },
 
     methods: {
-        generateReport () {
-            this.$inertia.post(this.route('generate-report'));
+        async generateReport() {
+            const { data } = await axios.post(this.route('generate-report'));
+            this.isProcessing = true;
+            this.listenForBatchUpdates(data.batchId);
+        },
+        listenForBatchUpdates(batchId) {
+            let vm = this;
+            Echo.channel(`batch.${batchId}`)
+                .listen('ReportGenerated', (e) => {
+                    vm.progress = e.progress;
+                    console.log(this.progress, 'progress???');
+                    console.log(e.progress);
+                });
+
+            Echo.channel(`batch.${batchId}`)
+                .listen('BatchComplete', (e) => {
+                    console.log('completed');
+                    vm.isProcessing = false;
+                });
         }
-    }
+    },
 }
 </script>
 

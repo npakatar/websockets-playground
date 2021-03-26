@@ -189,6 +189,7 @@ return [
             'supervisor-1' => [
                 'processes' => 3,
                 'maxProcesses' => 3,
+                'timeout' => 120
             ],
         ],
     ],
